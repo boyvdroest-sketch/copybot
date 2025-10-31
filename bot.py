@@ -17,7 +17,6 @@ def start_command(message):
 
     keyboard = types.InlineKeyboardMarkup()
     button = types.InlineKeyboardButton("🟡️ Join Channel 🟡️", url="https://t.me/flights_half_off")
-     button = types.InlineKeyboardButton("🟡️ Join Channel 🟡️", url="https://t.me/spidys_vouches")
     keyboard.add(button)
 
   
