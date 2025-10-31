@@ -4,7 +4,8 @@ import telebot
 from telebot import types
 
 # === CONFIG ===
-TOKEN = os.getenv("TELEGRAM_BOT_TOKEN", "8411184721:AAFIn8VTJ-jMRQ9BAvp6ozPFgDVogEL-1lg")
+TOKEN = os.getenv("TELEGRAM_BOT_TOKEN", "8429489568:AAFKr_Izu1GBiM_SOYvT_90VPZGj2ZJfm68"
+)
 BOT_USERNAME = "sunwinuss_bot"
 CHANNELS = ["@thaoluangamekm", "@trumbaogamea", "@gamevuicothuong"]
 DB_FILE = "users.db"
