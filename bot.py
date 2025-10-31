@@ -6,18 +6,22 @@ from telebot import types
 # Get bot token from environment variable
 TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
 # Add your admin user ID here
-ADMIN_ID = 7016264130  # Replace with your actual Telegram user ID
+ADMIN_ID = 7179248383  # Replace with your actual Telegram user ID
 
 bot = telebot.TeleBot(TOKEN)
 app = Flask(__name__)
 
-# Store user info for replies
-user_messages = {}
+# Simple in-memory storage for broadcast (will reset on restart)
+users_set = set()
 
 @bot.message_handler(commands=['start'])
 def start_command(message):
     if message is None:
         return
+
+    user = message.from_user
+    # Add user to broadcast list
+    users_set.add(user.id)
 
     # Create an inline keyboard with 3 buttons
     keyboard = types.InlineKeyboardMarkup(row_width=1)
@@ -42,57 +46,69 @@ def start_command(message):
 
     bot.send_message(message.chat.id, message_text, reply_markup=keyboard)
 
-@bot.message_handler(func=lambda message: message.text and message.text.lower() == "hello")
-def hello_handler(message):
-    user = message.from_user
-    user_info = f"User: {user.first_name} {user.last_name or ''} (@{user.username or 'No username'})"
+@bot.message_handler(commands=['stats'])
+def stats_command(message):
+    if message.from_user.id != ADMIN_ID:
+        return
     
-    # Store message info for admin replies
-    user_messages[message.message_id] = {
-        'user_id': user.id,
-        'user_info': user_info
-    }
-    
-    # Forward the "hello" message to admin with reply button
-    keyboard = types.InlineKeyboardMarkup()
-    keyboard.add(types.InlineKeyboardButton("📨 Reply", callback_data=f"reply_{message.message_id}"))
-    
-    forward_text = f"👋 Someone said hello!\n\n{user_info}\nUser ID: {user.id}\n\nMessage: '{message.text}'"
-    
-    bot.send_message(ADMIN_ID, forward_text, reply_markup=keyboard)
-    
-    # Also reply to the user
-    bot.reply_to(message, "👋 Hello! I've notified the admin. They'll get back to you soon!")
+    user_count = len(users_set)
+    bot.send_message(ADMIN_ID, f"📊 Bot Statistics:\n\n👥 Total Users: {user_count}")
 
-@bot.callback_query_handler(func=lambda call: call.data.startswith('reply_'))
-def reply_callback_handler(call):
-    message_id = int(call.data.split('_')[1])
+@bot.message_handler(commands=['broadcast'])
+def broadcast_command(message):
+    if message.from_user.id != ADMIN_ID:
+        return
     
-    if message_id in user_messages:
-        user_data = user_messages[message_id]
-        
-        # Ask admin to type the reply
-        msg = bot.send_message(ADMIN_ID, f"💬 Type your reply for user {user_data['user_info']}:")
-        
-        # Register next step handler for admin's reply
-        bot.register_next_step_handler(msg, process_admin_reply, user_data['user_id'])
-    else:
-        bot.answer_callback_query(call.id, "❌ Message data expired")
+    # Ask admin for broadcast message
+    msg = bot.send_message(ADMIN_ID, "📢 Please enter your broadcast message:")
+    bot.register_next_step_handler(msg, process_broadcast_message)
 
-def process_admin_reply(message, user_id):
-    try:
-        # Send admin's reply to the user
-        bot.send_message(user_id, f"📨 Message from admin:\n\n{message.text}")
-        bot.reply_to(message, "✅ Reply sent successfully!")
-    except Exception as e:
-        bot.reply_to(message, f"❌ Failed to send reply: {str(e)}")
+def process_broadcast_message(message):
+    broadcast_text = message.text
+    users = list(users_set)
+    success_count = 0
+    fail_count = 0
+    
+    # Send initial status
+    status_msg = bot.send_message(ADMIN_ID, f"📤 Starting broadcast to {len(users)} users...")
+    
+    for user_id in users:
+        try:
+            bot.send_message(user_id, f"📢 Announcement:\n\n{broadcast_text}")
+            success_count += 1
+        except Exception as e:
+            fail_count += 1
+            print(f"Failed to send to {user_id}: {e}")
+    
+    # Update status
+    bot.edit_message_text(
+        f"✅ Broadcast Completed!\n\n"
+        f"✅ Successful: {success_count}\n"
+        f"❌ Failed: {fail_count}\n"
+        f"📊 Total: {len(users)}",
+        ADMIN_ID,
+        status_msg.message_id
+    )
 
-# Handler for other messages (optional)
+# Handler for ALL messages - tell users to contact admin directly
 @bot.message_handler(func=lambda message: True)
-def other_messages_handler(message):
-    # You can modify this to handle other specific messages or ignore them
-    if message.chat.id != ADMIN_ID:  # Don't reply to admin's own messages
-        bot.reply_to(message, "Please use /start to see our services or say 'hello' to contact admin!")
+def all_messages_handler(message):
+    # Add user to broadcast list when they send any message
+    users_set.add(message.from_user.id)
+    
+    # Don't respond to admin's own messages
+    if message.from_user.id == ADMIN_ID:
+        return
+    
+    # For all user messages, tell them to contact admin directly
+    contact_text = (
+        "💬 For direct communication, please contact admin directly:\n\n"
+        "👤 Admin: @yrfrnd_spidy\n"
+        "📢 Channel: @flights_half_off\n\n"
+        "We'll respond to you as soon as possible!"
+    )
+    
+    bot.reply_to(message, contact_text)
 
 @app.route('/')
 def home():
