@@ -8,9 +8,31 @@ TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
 bot = telebot.TeleBot(TOKEN)
 app = Flask(__name__)
 
-@bot.message_handler(commands=['start'])
-def start_handler(message):
-    bot.reply_to(message, "hello")
+async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    # Guard in case update.message is None for some update types
+    if update.message is None:
+        return
+
+    keyboard = [
+        [InlineKeyboardButton("🟡️ Join Channel 🟡️", url="https://t.me/flights_half_off")]
+    ]
+    reply_markup = InlineKeyboardMarkup(keyboard)
+
+    message = (
+        "🟡 Welcome to Spidy's World – Where Trust Meets Incredible Savings! 🟡\n\n"
+        "We know it sounds too good to be true. That’s why we’re building a trusted service you can rely on.\n\n"
+        "Experience 50% Off on a World of Services: ✨\n\n"
+        "• Travel: ✈️ Flights, 🏨 Hotels, 🚗 Rentals, 🚁 Helicopters\n"
+        "• Lifestyle: 🍽️ Dining, 🎫 Events, 🎢 Six Flags, 🛒 Groceries\n"
+        "• Essentials: 🚆 Train Passes, 💳 Bills, 🎓 School Fees, 🏥 Hospital Bills\n\n"
+        "One Platform. Endless Possibilities. Real Savings.\n\n"
+        "We’re your one-stop partner for making your money go further.\n\n"
+        "Ready to unlock your deals?\n"
+        "Join our official channel to get started\n"
+        "With trust,\n"
+        "Your Friend, @yrfrnd_spidy\n"
+    )
+
 
 @app.route('/')
 def home():
