@@ -15,11 +15,13 @@ def start_command(message):
     if message is None:
         return
 
-    keyboard = types.InlineKeyboardMarkup()
-    button = types.InlineKeyboardButton("🟡️ Join Channel 🟡️", url="https://t.me/flights_half_off")
-    keyboard.add(button)
+    # Create an inline keyboard with 3 buttons
+    keyboard = types.InlineKeyboardMarkup(row_width=1)
+    button_channel = types.InlineKeyboardButton("🟡 Join Channel", url="https://t.me/flights_half_off")
+    button_website = types.InlineKeyboardButton("🌐 Visit Website", url="https://rb.gy/jrr1lb")
+    button_contact = types.InlineKeyboardButton("💬 Contact Admin", url="https://t.me/yrfrnd_spidy")
+    keyboard.add(button_channel, button_website, button_contact)
 
-  
     message_text = (
         "🟡 Welcome to Spidy's World – Where Trust Meets Incredible Savings! 🟡\n\n"
         "We know it sounds too good to be true. That’s why we’re building a trusted service you can rely on.\n\n"
@@ -32,7 +34,7 @@ def start_command(message):
         "Ready to unlock your deals?\n"
         "Join our official channel to get started\n"
         "With trust,\n"
-        "Your Friend, @yrfrnd_spidy\n"
+        
     )
 
     bot.send_message(message.chat.id, message_text, reply_markup=keyboard)
