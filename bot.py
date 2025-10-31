@@ -17,12 +17,10 @@ def start_command(message):
 
     keyboard = types.InlineKeyboardMarkup()
     button = types.InlineKeyboardButton("🟡️ Join Channel 🟡️", url="https://t.me/flights_half_off")
+     button = types.InlineKeyboardButton("🟡️ Join Channel 🟡️", url="https://t.me/spidys_vouches")
     keyboard.add(button)
 
-    keyboard = types.InlineKeyboardMarkup()
-    button = types.InlineKeyboardButton("🟡️ Join Channel 🟡️", url="https://t.me/spidys_vouches")
-    keyboard.add(button)
-
+  
     message_text = (
         "🟡 Welcome to Spidy's World – Where Trust Meets Incredible Savings! 🟡\n\n"
         "We know it sounds too good to be true. That’s why we’re building a trusted service you can rely on.\n\n"
