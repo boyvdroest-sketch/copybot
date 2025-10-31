@@ -1,6 +1,7 @@
 import os
 from flask import Flask, request
 import telebot
+from telebot import types
 
 # Get bot token from environment variable
 TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
@@ -8,17 +9,17 @@ TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
 bot = telebot.TeleBot(TOKEN)
 app = Flask(__name__)
 
-async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    # Guard in case update.message is None for some update types
-    if update.message is None:
+@bot.message_handler(commands=['start'])
+def start_command(message):
+    # Guard in case message is None
+    if message is None:
         return
 
-    keyboard = [
-        [InlineKeyboardButton("🟡️ Join Channel 🟡️", url="https://t.me/flights_half_off")]
-    ]
-    reply_markup = InlineKeyboardMarkup(keyboard)
+    keyboard = types.InlineKeyboardMarkup()
+    button = types.InlineKeyboardButton("🟡️ Join Channel 🟡️", url="https://t.me/flights_half_off")
+    keyboard.add(button)
 
-    message = (
+    message_text = (
         "🟡 Welcome to Spidy's World – Where Trust Meets Incredible Savings! 🟡\n\n"
         "We know it sounds too good to be true. That’s why we’re building a trusted service you can rely on.\n\n"
         "Experience 50% Off on a World of Services: ✨\n\n"
@@ -33,6 +34,7 @@ async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
         "Your Friend, @yrfrnd_spidy\n"
     )
 
+    bot.send_message(message.chat.id, message_text, reply_markup=keyboard)
 
 @app.route('/')
 def home():
@@ -61,7 +63,7 @@ if __name__ == "__main__":
         elif render_domain:
             webhook_url = f"{render_domain}/{TOKEN}"
         else:
-            webhook_url = None
+            webhook_url = None;
             
         if webhook_url:
             bot.set_webhook(url=webhook_url)
